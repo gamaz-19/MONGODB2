@@ -253,33 +253,71 @@ Realiza los siguientes ejercicios combinando múltiples etapas:
 1. **Listar productos con más de 3 comentarios y cuyo precio supere $100**
 
 ```javascript
+db.productos.aggregate([
+    { $match: { precio: { $gt: 100 } } },
+    { $unwind: "$comentarios" },
+    {
+        $group: {
+            _id: "$_id",
+            total: { $sum: 1 },
+            nombre: {$first: "$nombre"}
+        }
+    },
+    { $match: { total: { $gt: 3 } } },
+    { $sort: { total: -1 } }
+]);
 ```
 
 
 
-1. **Buscar productos con nombre que comience con letra "A" o "P" usando REGEX**
+2. **Buscar productos con nombre que comience con letra "A" o "P" usando REGEX**
 
 ```javascript
+db.productos.aggregate([
+    {
+      $match: {
+        nombre: { $regex: "^[AP]", $options: "i" }
+      }
+    },
+    { $project: { nombre: 1, descripcion: 1 } }
+  ]);
 ```
 
 
 
-1. **Agrupar por categoría y obtener: cantidad, promedio de precio, y stock máximo**
+3. **Agrupar por categoría y obtener: cantidad, promedio de precio, y stock máximo**
 
 ```javascript
+db.productos.aggregate([
+    {
+        $group: {
+            _id: "$categoria",
+            total: { $sum: 1 },
+            categoria: { $first: "$categoria" },
+            promedio: { $avg: "$precio" },
+            maximo: { $max: "$stock" }
+        }
+    }
+]);
 ```
 
 
 
-1. **Filtrar productos que tengan al menos un comentario con la palabra “recomendado” o “perfecto”**
+4. **Filtrar productos que tengan al menos un comentario con la palabra “recomendado” o “perfecto”**
 
 ```javascript
-
+  db.productos.aggregate([
+    {
+        $match: {
+            "comentarios.comentario": { $regex: "(recomendado|perfecto)", $options: "i" }
+          }
+    }
+  ]);
 ```
 
 
 
-1. **Mostrar los 5 usuarios con más comentarios hechos**
+5. **Mostrar los 5 usuarios con más comentarios hechos**
 
 ```javascript
 ```

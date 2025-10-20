@@ -694,3 +694,70 @@ db.productos.insertMany([
     }
 
 ]);
+
+
+//1. ** Listar productos con más de 3 comentarios y cuyo precio supere $100 **
+
+db.productos.aggregate([
+    { $match: { precio: { $gt: 100 } } },
+    { $unwind: "$comentarios" },
+    {
+        $group: {
+            _id: "$_id",
+            total: { $sum: 1 },
+            nombre: { $first: "$nombre" }
+        }
+    },
+    { $match: { total: { $gt: 3 } } },
+    { $sort: { total: -1 } }
+]);
+
+// 2. **Buscar productos con nombre que comience con letra "A" o "P" usando REGEX**
+
+db.productos.aggregate([
+    {
+        $match: {
+            nombre: { $regex: "^[AP]", $options: "i" }
+        }
+    },
+    { $project: { nombre: 1, descripcion: 1 } }
+]);
+
+// 3. **Agrupar por categoría y obtener: cantidad, promedio de precio, y stock máximo**
+
+
+db.productos.aggregate([
+    {
+        $group: {
+            _id: "$categoria",
+            total: { $sum: 1 },
+            categoria: { $first: "$categoria" },
+            promedio: { $avg: "$precio" },
+            maximo: { $max: "$stock" }
+        }
+    }
+]);
+
+// 4. **Filtrar productos que tengan al menos un comentario con la palabra “recomendado” o “perfecto”**
+
+  db.productos.aggregate([
+    {
+        $match: {
+            "comentarios.comentario": { $regex: "(recomendado|perfecto)", $options: "i" }
+          }
+    }
+  ]);
+
+// 5. **Mostrar los 5 usuarios con más comentarios hechos**
+
+db.productos.aggregate([
+    { $unwind: "$comentarios" },
+    {
+        $group: {
+            _id: "$comentarios.usuario",
+            total: { $sum: 1 },
+        }
+    },
+    { $sort: { total: -1 } },
+    { $limit: 5}
+]);

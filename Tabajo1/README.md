@@ -320,5 +320,16 @@ db.productos.aggregate([
 5. **Mostrar los 5 usuarios con más comentarios hechos**
 
 ```javascript
+db.productos.aggregate([
+    { $unwind: "$comentarios" },
+    {
+        $group: {
+            _id: "$comentarios.usuario",
+            total: { $sum: 1 },
+        }
+    },
+    { $sort: { total: -1 } },
+    { $limit: 5}
+]);
 ```
 
